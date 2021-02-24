@@ -4,9 +4,14 @@ namespace GraphQL\Type\Definition;
 
 class CustomType
 {
+    private static $TYPES = [];
 
     public function __callStatic($name, $arguments)
     {
+
+        if (self::$TYPES[$name]) {
+            return self::$TYPES[$name];
+        }
 
         $config = [];
         //check file
@@ -26,6 +31,6 @@ class CustomType
 
 
 
-        return new ObjectType($config);
+        return self::$TYPES[$name] = new ObjectType($config);
     }
 }
