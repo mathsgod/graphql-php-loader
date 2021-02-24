@@ -1,5 +1,6 @@
 {
     "name": "mathsgod/graphql-php-loader",
+    "description": "A php loader for webonyx graphql",
     "type": "library",
     "require": {
         "webonyx/graphql-php": "^0.12.6"
