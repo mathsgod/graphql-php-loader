@@ -21,12 +21,7 @@ class CustomType
             //fields process
             $fields = [];
             foreach ($config["fields"] as $field_name => $type) {
-
-                if (is_string($type)) {
-                    $fields[$field_name] = Custom::ParseOutputType($type);
-                } else {
-                    $fields[$field_name] = $type;
-                }
+                $fields[$field_name] = is_string($type) ? Custom::ParseOutputType($type) : $type;
             }
 
             $config["fields"] = $fields;
@@ -41,7 +36,17 @@ class CustomType
             //arguments
             if (is_string($args = $stub["args"])) {
                 $stub["args"] = Custom::ParseArgument($args);
+            } else {
+
+                $args = [];
+                foreach ($stub["args"] as $name => $arg) {
+                    $args[$name] = is_string($arg) ? Custom::ParseInputType($arg) : $arg;
+                }
+                $stub["args"] = $args;
             }
+
+
+
 
             if (is_string($stub["type"])) {
                 $stub["type"] = Custom::ParseOutputType($stub["type"]);
