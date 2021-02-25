@@ -4,7 +4,7 @@ namespace GraphQL\Type\Definition;
 
 class CustomType
 {
-    private static $TYPES = [];
+    public static $TYPES = [];
 
     public function __callStatic($name, $arguments)
     {
@@ -24,13 +24,19 @@ class CustomType
         foreach (glob(Custom::$ROOT . "/$name/*.php") as $p) {
             $field_name = pathinfo($p, PATHINFO_FILENAME);
             $stub = require_once($p);
+
+            //arguments
+            if (is_string($args = $stub["args"])) {
+                $stub["args"] = Custom::ParseArgument($args);
+            }
+
+            if (is_string($stub["type"])) {
+                $stub["type"] = Custom::ParseOutputType($stub["type"]);
+            }
+
             $config["fields"][$field_name] = $stub;
         }
-
         $config["name"] = $name;
-
-
-
         return self::$TYPES[$name] = new ObjectType($config);
     }
 }

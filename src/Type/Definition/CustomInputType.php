@@ -4,8 +4,13 @@ namespace GraphQL\Type\Definition;
 
 class CustomInputType
 {
+    public static $TYPES = [];
+
     public function __callStatic($name, $arguments)
     {
+        if (self::$TYPES[$name]) {
+            return self::$TYPES[$name];
+        }
 
         $config = [];
         //check file
@@ -22,9 +27,7 @@ class CustomInputType
         }
 
         $config["name"] = $name;
-
-
-
-        return new InputObjectType($config);
+        return self::$TYPES[$name] = new InputObjectType($config);
     }
+
 }
