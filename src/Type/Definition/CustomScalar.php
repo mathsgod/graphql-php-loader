@@ -2,37 +2,22 @@
 
 namespace GraphQL\Type\Definition;
 
-class CustomType
+class CustomScalar
 {
     public static $TYPES = [];
 
-    public function __callStatic($name, $arguments)
+    public static function JSON()
     {
-
-        if (self::$TYPES[$name]) {
-            return self::$TYPES[$name];
+        if (self::$TYPES["JSON"]) {
+            return self::$TYPES["JSON"];
         }
 
-        $config = [];
-        //check file
-        if (file_exists($file =  Custom::$ROOT . "/$name.php")) {
-            $config = require_once($file);
-        }
-
-
-        //field
-        foreach (glob(Custom::$ROOT . "/$name/*.php") as $p) {
-            $field_name = pathinfo($p, PATHINFO_FILENAME);
-            $stub = require_once($p);
-
-            //arguments
-            if (is_string($args = $stub["args"])) {
-                $stub["args"] = Custom::ParseArgument($args);
+        self::$TYPES["JSON"] = new CustomScalarType([
+            "name" => "JSON",
+            "serialize" => function ($value) {
+                return $value;
             }
-
-            $config["fields"][$field_name] = $stub;
-        }
-        $config["name"] = $name;
-        return self::$TYPES[$name] = new ObjectType($config);
+        ]);
+        return self::$TYPES["JSON"];
     }
 }
