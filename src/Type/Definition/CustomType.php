@@ -39,8 +39,8 @@ class CustomType
             } else {
 
                 $args = [];
-                foreach ($stub["args"] as $name => $arg) {
-                    $args[$name] = is_string($arg) ? Custom::ParseInputType($arg) : $arg;
+                foreach ($stub["args"] as $arg_name => $arg) {
+                    $args[$arg_name] = is_string($arg) ? Custom::ParseInputType($arg) : $arg;
                 }
                 $stub["args"] = $args;
             }
