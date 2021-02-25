@@ -52,6 +52,14 @@ class Custom
         return self::InternalBuildWrappedOuputType($field->type);
     }
 
+    
+    public static function ParseInputType(string $type)
+    {
+        $doc_node = Parser::parse("type Query{ a:$type }");
+        $field = $doc_node->definitions[0]->fields[0];
+        return self::InternalBuildWrappedInputType($field->type);
+    }
+
     public static function BuildInputType($ref)
     {
         if (is_string($ref)) {

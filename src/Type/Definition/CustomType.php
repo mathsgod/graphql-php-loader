@@ -17,6 +17,19 @@ class CustomType
         //check file
         if (file_exists($file =  Custom::$ROOT . "/$name.php")) {
             $config = require_once($file);
+
+            //fields process
+            $fields = [];
+            foreach ($config["fields"] as $field_name => $type) {
+
+                if (is_string($type)) {
+                    $fields[$field_name] = Custom::ParseOutputType($type);
+                } else {
+                    $fields[$field_name] = $type;
+                }
+            }
+
+            $config["fields"] = $fields;
         }
 
 
