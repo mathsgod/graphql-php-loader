@@ -14,6 +14,7 @@ use GraphQL\Utils\Utils;
 class Custom
 {
     public static $ROOT = "graphql";
+    public static $TYPES = [];
 
     public static function InternalBuildOutputType(string $type)
     {
@@ -25,7 +26,6 @@ class Custom
         if ($type == "JSON") {
             return CustomScalar::JSON();
         }
-
         return CustomType::$type();
     }
 
@@ -42,7 +42,6 @@ class Custom
         }
 
         return CustomInputType::$type();
-       
     }
 
     public static function ParseOutputType(string $type)
@@ -52,11 +51,11 @@ class Custom
         return self::InternalBuildWrappedOuputType($field->type);
     }
 
-    
     public static function ParseInputType(string $type)
     {
         $doc_node = Parser::parse("type Query{ a:$type }");
         $field = $doc_node->definitions[0]->fields[0];
+
         return self::InternalBuildWrappedInputType($field->type);
     }
 
@@ -74,7 +73,7 @@ class Custom
         if (is_string($ref)) {
             return self::InternalBuildOutputType($ref);
         }
-
+        
         return self::InternalBuildOutputType($ref->name->value);
     }
 

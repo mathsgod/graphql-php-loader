@@ -4,42 +4,39 @@ namespace GraphQL\Type\Definition;
 
 class CustomInputType
 {
-    public static $TYPES = [];
 
     public function __callStatic($name, $arguments)
     {
-        if (self::$TYPES[$name]) {
-            return self::$TYPES[$name];
+        if (Custom::$TYPES[$name]) {
+            return Custom::$TYPES[$name];
         }
 
         $config = [];
         //check file
         if (file_exists($file = Custom::$ROOT . "/$name.php")) {
             $config = require_once($file);
-
-            //fields process
-            $fields = [];
-            foreach ($config["fields"] as $field_name => $type) {
-
-                if (is_string($type)) {
-                    $fields[$field_name] = Custom::ParseInputType($type);
-                } else {
-                    $fields[$field_name] = $type;
-                }
-            }
-
-            $config["fields"] = $fields;
         }
-
 
         //field
         foreach (glob(Custom::$ROOT  . "/$name/*.php") as $p) {
             $field_name = pathinfo($p, PATHINFO_FILENAME);
-            $stub = require_once($p);
-            $config["fields"][$field_name] = $stub;
+            $config["fields"][$field_name] = require_once($p);
+        }
+
+        foreach ($config["fields"]  as $field_name => $field_value) {
+
+            $field = $field_value;
+            if (is_string($field)) {
+                $field = Custom::ParseInputType($field_value);
+            } elseif (is_array($field)) {
+                if (is_string($field["type"])) {
+                    $field["type"] = Custom::ParseInputType($field["type"]);
+                }
+            }
+            $config["fields"][$field_name] = $field;
         }
 
         $config["name"] = $name;
-        return self::$TYPES[$name] = new InputObjectType($config);
+        return Custom::$TYPES[$name] = new InputObjectType($config);
     }
 }
