@@ -46,14 +46,14 @@ class Custom
 
     public static function ParseOutputType(string $type)
     {
-        $doc_node = Parser::parse("type Query{ a:$type }");
+        $doc_node = Parser::parse("type Query{ a:$type }", ["noLocation" => true]);
         $field = $doc_node->definitions[0]->fields[0];
         return self::InternalBuildWrappedOuputType($field->type);
     }
 
     public static function ParseInputType(string $type)
     {
-        $doc_node = Parser::parse("type Query{ a:$type }");
+        $doc_node = Parser::parse("type Query{ a:$type }", ["noLocation" => true]);
         $field = $doc_node->definitions[0]->fields[0];
 
         return self::InternalBuildWrappedInputType($field->type);
@@ -73,7 +73,7 @@ class Custom
         if (is_string($ref)) {
             return self::InternalBuildOutputType($ref);
         }
-        
+
         return self::InternalBuildOutputType($ref->name->value);
     }
 
@@ -122,9 +122,7 @@ class Custom
     public static function ParseArgument(string $args): array
     {
 
-        $doc_node = Parser::parse("type Query{
-            a($args):string
-        }");
+        $doc_node = Parser::parse("type Query{ a($args):string }", ["noLocation" => true]);
 
 
         $field = $doc_node->definitions[0]->fields[0];

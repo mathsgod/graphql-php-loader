@@ -2,89 +2,109 @@
 
 namespace GraphQL\Type\Definition;
 
+use Exception;
 use GraphQL\Language\AST\FieldDefinitionNode;
+use GraphQL\Language\Parser;
+use phpDocumentor\Reflection\Types\Object_;
 
 class CustomType
 {
-    public static function ParseConfig(string $name, string $path): array
+
+    public static function ParseFieldArgument($argument)
     {
-        $config = [];
-        //check file
-        if (file_exists($file = "$path.php")) {
-            $config = require_once($file);
+        if (is_string($argument)) {
+            return Custom::ParseArgument($argument);
         }
 
+        $args = [];
+        foreach ($argument as $arg_name => $arg) {
+            $args[] = [
+                "name" => $arg_name,
+                "type" => is_string($arg) ? Custom::ParseInputType($arg) : $arg
+            ];
+        }
+        return $args;
+    }
 
+    protected static function ParseFieldDirective($directive)
+    {
+        return  FieldDirective::Parse($directive);
+    }
 
+    public static function ParseField($field)
+    {
+        if (is_string($field)) {
+            return Custom::ParseOutputType($field);
+        }
+
+        //echo json_encode($field), "\n";
+        $config = $field;
+        $config["type"] = Custom::ParseOutputType($field["type"]);
+
+        $config["args"] = self::ParseFieldArgument($config["args"]);
+
+        if ($config["directives"]) {
+            $config["astNode"] = new FieldDefinitionNode([
+                "directives" => self::ParseFieldDirective($config["directives"])
+            ]);
+        }
+
+        return $config;
+    }
+
+    public static function ParseConfig(string $name, string $path): ObjectType
+    {
+        //echo $name, "\n";
+        $config = [];
+        $config["name"] = $name;
+        //check file
+        //$config["fields"] = [];
+
+        if (file_exists($file = "$path.php")) {
+            $root = require_once($file);
+            $config["fields"] = $root["fields"] ?? [];
+        }
 
         //field
         foreach (glob($path . "/*.php") as $p) {
             $field_name = pathinfo($p, PATHINFO_FILENAME);
-            $config["fields"][$field_name] = require_once($p);
+
+            $fieldDef = require_once($p);
+            if (!is_array($fieldDef)) {
+                throw new Exception("$p is not return array");
+            }
+
+            if (!$fieldDef["type"]) {
+                throw new Exception("type must be defined in field define file $p");
+            }
+
+            $config["fields"][$field_name] = $fieldDef;
         }
 
         foreach (glob($path . "/*", GLOB_ONLYDIR) as $p) {
             $child = pathinfo($p, PATHINFO_FILENAME);
 
-            $config["fields"][$child] = [
-                "type" => self::Create($name . $child, self::ParseConfig($name . $child, $p)),
-                "resolve" => function ($root) {
-                    return $root;
-                }
-            ];
+            $c = [];
+            $c["type"] = self::ParseConfig($name . $child,  $p);
+            $c["resolve"] = function ($root) {
+                return $root;
+            };
+            $config["fields"][$child] = $c;
         }
 
+        $fields =  [];
+        foreach ($config["fields"] as $name => $value) {
+            $fields[$name] = $value;
+        }
 
-        $fields = $config["fields"];
         $config["fields"] = function () use (&$fields) {
-
-            $fs = [];
-            foreach ($fields as $field_name => $field_value) {
-                $fs[$field_name] = $field_value;
-
-                //type
-                if (is_string($fs[$field_name])) {
-                    $fs[$field_name]["type"] = Custom::ParseOutputType($fs[$field_name]);
-                } elseif (is_array($fs[$field_name])) {
-                    if (is_string($fs[$field_name]["type"])) {
-                        $fs[$field_name]["type"] = Custom::ParseOutputType($fs[$field_name]["type"]);
-                    }
-                }
-
-                //args
-                if (is_array($fs[$field_name])) {
-                    if (is_string($fs[$field_name]["args"])) {
-                        $fs[$field_name]["args"] = Custom::ParseArgument($fs[$field_name]["args"]);
-                    } else {
-                        foreach ($fs[$field_name]["args"] as $arg_name => $arg) {
-                            $fs[$field_name]["args"][$arg_name] = is_string($arg) ? Custom::ParseInputType($arg) : $arg;
-                        }
-                    }
-                }
-                if (is_array($fs[$field_name])) {
-                    if (is_string($fs[$field_name]["directives"])) {
-                        $fs[$field_name]["astNode"] = new FieldDefinitionNode([
-                            "directives" => FieldDirective::Parse($fs[$field_name]["directives"])
-                        ]);
-
-                    }
-                }
+            $ret = [];
+            foreach ($fields as $name => $field) {
+                $ret[$name] = self::ParseField($field);
             }
-            return $fs;
+            return $ret;
         };
-
-
-
-        return $config;
-    }
-
-    public static function Create(string $name, array $config)
-    {
-        if (Custom::$TYPES[$name]) {
-            return Custom::$TYPES[$name];
-        }
-        $config["name"] = $name;
-        return new ObjectType($config);
+        return self::Create($config);
     }
 
     public function __callStatic($name, $arguments)
@@ -92,8 +112,15 @@ class CustomType
         if (Custom::$TYPES[$name]) {
             return Custom::$TYPES[$name];
         }
-        $config = self::ParseConfig($name, Custom::$ROOT . "/" . $name);
-        $config["name"] = $name;
-        return Custom::$TYPES[$name] = new ObjectType($config);
+        return self::ParseConfig($name, Custom::$ROOT . "/" . $name);
+    }
+
+    public static function Create(array $config)
+    {
+        if (Custom::$TYPES[$config["name"]]) {
+            return Custom::$TYPES[$config["name"]];
+        }
+
+        return Custom::$TYPES[$config["name"]] = new ObjectType($config);
     }
 }
