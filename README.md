@@ -43,7 +43,7 @@ return [
     "resolve"=>function($root,$args,$context){
         return "world!";
     }
-]
+];
 ```
 It equivalent to build to following schema
 ```gql
@@ -69,7 +69,7 @@ return [
     "resolve"=>function($root,$args,$context){
         return $context->me; //return object
     }
-]
+];
 ```
 
 User.php
@@ -79,7 +79,7 @@ return [
         "first_name"=>"String",
         "last_name"=>"String"
     ]
-]
+];
 ```
 It equivalent to build to following schema
 ```gql
@@ -98,6 +98,20 @@ If you want to create custom fields for custom object type, just create folder f
 
 ##### example
 User has multiple phone number
+
+graphql/User.php
+```php
+return [
+    "fields"=>[
+        "first_name"=>"String",
+        "last_name"=>"String"
+    ]
+];
+/* 
+no need create phone in fields,
+by create file phone.php in User folder, it auto generate fields in User type
+*/
+```
 
 create phone.php in folder "User"
 
