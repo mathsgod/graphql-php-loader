@@ -147,6 +147,35 @@ type User{
 ```
 
 
+### Sub folder structure
+
+```
+graphql
++-- Query
+|  +-- User
+|      +-- list.php
+|  +-- Invoice
+|      +-- list.php
++-- User.php
++-- Invoice.php
+```
+
+now you can query by following
+```gql
+query{
+    User{
+        list{
+            first_name
+            last_name
+        }
+    }
+    Invoice{
+        list{
+            invoice_no
+        }
+    }
+}
+```
 
 
 
