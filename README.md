@@ -29,7 +29,7 @@ $schema = new Schema($config);
 ### Example 
 
 #### Simple query
-Create a file hello.php in "graphql" folder
+Create a file hello.php in "graphql/Query" folder
 ```
 graphql
 +-- Query
