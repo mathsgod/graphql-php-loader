@@ -1,3 +1,5 @@
+[![PHP Composer](https://github.com/mathsgod/graphql-php-loader/actions/workflows/php.yml/badge.svg?branch=main)](https://github.com/mathsgod/graphql-php-loader/actions/workflows/php.yml)
+
 # graphql-php-loader
 
 A simple loader to generate Schema for webonyx/graphql-php
