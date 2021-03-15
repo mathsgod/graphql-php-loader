@@ -148,7 +148,7 @@ class Custom
                 ];
 
                 if (isset($value->defaultValue)) {
-                    $config['defaultValue'] = AST::valueFromAST($value->defaultValue, $type);
+                    $config['defaultValue'] = $value->defaultValue->value;
                 }
                 return $config;
             }
