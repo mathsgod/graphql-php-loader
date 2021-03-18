@@ -2,10 +2,10 @@
 
 namespace GraphQL\Type\Definition;
 
+use Closure;
 use Exception;
 use GraphQL\Language\AST\FieldDefinitionNode;
-use GraphQL\Language\Parser;
-use phpDocumentor\Reflection\Types\Object_;
+use ReflectionFunction;
 
 class CustomType
 {
@@ -33,11 +33,40 @@ class CustomType
 
     public static function ParseField($field)
     {
+
+        // parse as a function
+        if ($field instanceof Closure) {
+            $reflection = new ReflectionFunction($field);
+
+            $config = [];
+
+
+            $return_type = $reflection->getReturnType();
+            switch ($return_type) {
+                case "int":
+                    $config["type"] = Custom::ParseOutputType("Int!");
+                    break;
+                case "bool":
+                    $config["type"] = Custom::ParseOutputType("Boolean!");
+                    break;
+                case "string":
+                    $config["type"] = Custom::ParseOutputType("String!");
+                    break;
+                default:
+                    $config["type"] = Custom::ParseOutputType("String");
+            }
+
+            $config["resolve"] = $field;
+
+            return $config;
+        }
+
+        //prase as a string
         if (is_string($field)) {
             return Custom::ParseOutputType($field);
         }
 
-        //echo json_encode($field), "\n";
+        //parse as a array
         $config = $field;
         $config["type"] = Custom::ParseOutputType($field["type"]);
 
@@ -48,7 +77,6 @@ class CustomType
                 "directives" => self::ParseFieldDirective($config["directives"])
             ]);
         }
-
         return $config;
     }
 
