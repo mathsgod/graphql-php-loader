@@ -114,9 +114,17 @@ class CustomType
 
             $c = [];
             $c["type"] = self::ParseConfig($name . $child,  $p);
-            $c["resolve"] = function ($root) {
-                return $root;
-            };
+
+            
+            // check if field file exist 
+            if(!$config["fields"][$child]){
+                $c["resolve"] = function ($root) {
+                    return $root;
+                };
+            }else{
+                $c["resolve"]=$config["fields"][$child]["resolve"];
+            }
+            
             $config["fields"][$child] = $c;
         }
 
