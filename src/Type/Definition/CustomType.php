@@ -53,7 +53,7 @@ class CustomType
                     $config["type"] = Custom::ParseOutputType("String!");
                     break;
                 default:
-                    $config["type"] = Custom::ParseOutputType("String");
+                    $config["type"] = Custom::ParseOutputType($return_type);
             }
 
             $config["resolve"] = $field;
@@ -116,13 +116,13 @@ class CustomType
             $c["type"] = self::ParseConfig($name . $child,  $p);
 
             
-            // check if field file exist 
             if(!$config["fields"][$child]){
                 $c["resolve"] = function ($root) {
                     return $root;
                 };
             }else{
                 $c["resolve"]=$config["fields"][$child]["resolve"];
+                $c["args"]=$config["fields"][$child]["args"];
             }
             
             $config["fields"][$child] = $c;
